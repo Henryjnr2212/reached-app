@@ -15,3 +15,4 @@ export * from './police.ts';
 export * from './battery.ts';
 export * from './activity.ts';
 export * from './contacts.ts';
+export * from './tokens.ts';

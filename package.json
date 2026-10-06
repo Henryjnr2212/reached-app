@@ -2,14 +2,26 @@
   "name": "reached",
   "private": true,
   "packageManager": "pnpm@10.28.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "typecheck": "pnpm -r --if-present typecheck",
-    "lint": "eslint . --max-warnings=0",
+    "typecheck": "pnpm -r --if-present typecheck && bash scripts/deno.sh check",
+    "lint": "eslint . --max-warnings=0 && bash scripts/deno.sh lint",
     "test": "pnpm --filter @reached/core test && pnpm --filter @reached/mobile test",
     "test:db": "bash scripts/test-db.sh",
     "test:functions": "bash scripts/test-functions.sh",
     "test:e2e": "bash scripts/test-e2e.sh",
     "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "1.63.0",
+    "deno": "2.9.6",
+    "eslint": "^9.39.5",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.1"
   }
 }
