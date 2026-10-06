@@ -133,3 +133,17 @@ describe('DemoBackend', () => {
     expect(await b.listContacts()).toHaveLength(1);
   });
 });
+
+describe('DemoBackend contacts and rules', () => {
+  beforeEach(() => jest.useFakeTimers({ now: Date.UTC(2026, 9, 6, 9, 0) }));
+  afterEach(() => jest.useRealTimers());
+
+  it('removing a contact removes them from every rule', async () => {
+    const { b, mom } = await signedIn();
+    const work = await b.addPlace({ name: 'Work', icon: 'work', lat: 5.6037, lng: -0.187, radius: 150, address: null, ghanaPostGps: null });
+    await b.saveRule({ placeId: work.id, event: 'arrive', contactIds: [mom.id], days: [1, 2, 3, 4, 5], windowStart: null, windowEnd: null, message: null, enabled: true });
+    await b.removeContact(mom.id);
+    expect((await b.listRules())[0]!.contactIds).toEqual([]);
+    b.dispose();
+  });
+});

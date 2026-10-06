@@ -1,5 +1,5 @@
 begin;
-select plan(20);
+select plan(22);
 
 select tests.create_user('+233241110031', 'Ama') as ama \gset
 select tests.add_contact(:'ama', 'Mom', '+233201110031') as mom \gset
@@ -50,6 +50,12 @@ reset role;
 select is(public.process_ask_first(now() + interval '4 minutes'), 0, 'not sent before the timeout');
 select is(public.process_ask_first(now() + interval '5 minutes'), 1, 'sent anyway after 5 minutes');
 select is((select count(*)::int from public.messages where event_id = :'ask' and status = 'pending'), 2, 'messages released');
+
+
+-- Removing a contact removes them from every rule (spec §7).
+select is((select count(*)::int from public.rule_contacts where contact_id = :'dad'), 2, 'Dad is in two rules');
+delete from public.contacts where id = :'dad';
+select is((select count(*)::int from public.rule_contacts where contact_id = :'dad'), 0, 'removed contact leaves no rules behind');
 
 select * from finish();
 rollback;
