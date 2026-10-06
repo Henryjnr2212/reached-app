@@ -4,6 +4,7 @@ import * as TaskManager from 'expo-task-manager';
 import { Platform } from 'react-native';
 import { getBackend } from '@/lib/backend';
 import type { Place, Trip } from '@/lib/backend/types';
+import { report } from '@/lib/outbox';
 import { processSample } from '@/lib/runTracker';
 import { EMPTY_TRACKER, type TrackerState } from '@/lib/tracker';
 import { batteryPercent } from './battery';
@@ -59,9 +60,7 @@ if (Platform.OS !== 'web') {
       const state = await load<TrackerState>(STATE_KEY, EMPTY_TRACKER);
       const key = `place:${data.region.identifier}`;
       if (state.zones[key]?.phase === 'arrived') {
-        await getBackend()
-          .reportPlaceEvent(data.region.identifier, 'leave', null)
-          .catch(() => undefined);
+        await report({ type: 'place_leave', placeId: data.region.identifier }, { lat: data.region.latitude, lng: data.region.longitude });
         await save(STATE_KEY, { zones: { ...state.zones, [key]: { phase: 'outside' } } });
       }
     }

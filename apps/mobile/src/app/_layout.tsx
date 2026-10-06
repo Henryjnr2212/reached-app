@@ -17,7 +17,7 @@ import { BackendProvider } from '@/lib/backend';
 import '@/lib/device/tasks';
 import { setupNotifications } from '@/lib/device/notifications';
 import { useProfile, useSession } from '@/lib/hooks/queries';
-import { useDeviceStatus, useForegroundTracker, useOverdueWatcher, usePushRouting } from '@/lib/hooks/useRuntime';
+import { useDeviceStatus, useForegroundTracker, useOutbox, useOverdueWatcher, usePushRouting } from '@/lib/hooks/useRuntime';
 import { ThemeProvider, ToastProvider, useTheme } from '@/ui';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
@@ -30,6 +30,7 @@ function Runtime() {
   useDeviceStatus();
   useForegroundTracker(ready);
   useOverdueWatcher(ready);
+  useOutbox(ready);
   usePushRouting(ready);
   return null;
 }

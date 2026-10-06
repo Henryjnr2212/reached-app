@@ -228,6 +228,13 @@ export class DemoBackend implements Backend {
 
   // ---------------------------------------------------------------- internals
 
+  /** Behaves like the real backend when the browser is offline (e2e uses context.setOffline). */
+  private needNetwork() {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      throw new BackendError('network', "You're offline. We'll send it when you're back online.");
+    }
+  }
+
   private me(): Profile {
     if (!this.s.userId || !this.s.profile) throw new BackendError('not_authenticated', 'Please sign in again.');
     return this.s.profile;
@@ -701,6 +708,7 @@ export class DemoBackend implements Backend {
 
   /** Mirrors public.report_place_event(). */
   async reportPlaceEvent(placeId: string, event: RuleEvent, at?: LatLng | null) {
+    this.needNetwork();
     const p = this.me();
     const place = this.s.places.find((x) => x.id === placeId);
     if (!place) throw new BackendError('place_not_found', 'Place not found.');
@@ -811,6 +819,7 @@ export class DemoBackend implements Backend {
   }
 
   async arriveTrip(tripId: string, at?: LatLng | null, source: 'manual' | 'auto' = 'manual') {
+    this.needNetwork();
     const id = this.completeTrip(this.live(tripId), at ?? null, source);
     this.changed();
     return id;

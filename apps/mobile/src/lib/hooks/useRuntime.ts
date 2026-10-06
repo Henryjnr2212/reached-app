@@ -3,19 +3,20 @@ import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import { router, usePathname } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import { AppState, Platform } from 'react-native';
+import { AppState, Linking, Platform } from 'react-native';
 import { backendNow, getBackend } from '@/lib/backend';
 import { batteryPercent, batteryRestricted } from '@/lib/device/battery';
 import { getLocationAccess, toSample } from '@/lib/device/location';
 import { getNotificationAccess, pushToken } from '@/lib/device/notifications';
 import { updateTrackingCache } from '@/lib/device/tasks';
+import { describeFallback, dueForSms, fallbackSms, flushOutbox, markItem, outboxItems, smsUrl } from '@/lib/outbox';
 import { processSample } from '@/lib/runTracker';
 import { useApp } from '@/lib/store';
 import { EMPTY_SMART, stepSmart, type SmartState } from '@/lib/smart';
 import { EMPTY_TRACKER, type TrackerState } from '@/lib/tracker';
 import { areaAt } from '@/lib/device/location';
 import { showLocal } from '@/lib/device/notifications';
-import { keys, TRIP_KEYS, useLiveTrip, usePlaces, useProfile } from './queries';
+import { keys, TRIP_KEYS, useContacts, useLiveTrip, usePlaces, useProfile, useRules } from './queries';
 
 /** Re-read permissions and battery state on launch and whenever the app returns to the foreground. */
 export function useDeviceStatus() {
@@ -193,4 +194,71 @@ export function usePushRouting(enabled: boolean) {
     });
     return () => sub.remove();
   }, [enabled, qc]);
+}
+
+/**
+ * Sends arrivals that were detected offline once the connection is back.
+ * After 5 minutes still offline, opens the phone's SMS app with the arrival
+ * text ready (or, in the background, a notification that leads there).
+ * The queued report still reaches the server later so the trip ends and the
+ * overdue check stops.
+ */
+export function useOutbox(enabled: boolean) {
+  const qc = useQueryClient();
+  const online = useApp((s) => s.online);
+  const contacts = useContacts();
+  const places = usePlaces();
+  const rules = useRules();
+  const trip = useLiveTrip(enabled);
+  const profile = useProfile(enabled);
+  const data = useRef({ contacts: contacts.data, places: places.data, rules: rules.data, trip: trip.data, profile: profile.data });
+  data.current = { contacts: contacts.data, places: places.data, rules: rules.data, trip: trip.data, profile: profile.data };
+
+  useEffect(() => {
+    if (!enabled) return;
+    let busy = false;
+    const tick = async () => {
+      if (busy) return;
+      busy = true;
+      try {
+        const before = (await outboxItems()).length;
+        if (!before) return;
+        const left = await flushOutbox();
+        if (left < before) await Promise.all(TRIP_KEYS.map((k) => qc.invalidateQueries({ queryKey: k })));
+        if (!left) return;
+        const d = data.current;
+        const foreground = AppState.currentState === 'active';
+        for (const item of dueForSms(await outboxItems(), backendNow())) {
+          if (!foreground && item.notified) continue;
+          const sms = fallbackSms(item, {
+            firstName: d.profile?.firstName ?? 'Your contact',
+            contacts: d.contacts ?? [],
+            places: d.places ?? [],
+            rules: d.rules ?? [],
+            trip: d.trip ?? null,
+          });
+          if (!sms) {
+            await markItem(item.id, { smsOffered: true });
+          } else if (foreground) {
+            await markItem(item.id, { smsOffered: true });
+            await Linking.openURL(smsUrl(sms.phones, sms.body, Platform.OS === 'ios' ? 'ios' : 'android')).catch(() => undefined);
+          } else {
+            await markItem(item.id, { notified: true });
+            await showLocal('No internet', describeFallback(sms.names), { kind: 'sms_fallback' });
+          }
+        }
+      } finally {
+        busy = false;
+      }
+    };
+    void tick();
+    const id = setInterval(() => void tick(), 30_000);
+    const sub = AppState.addEventListener('change', (st) => {
+      if (st === 'active') void tick();
+    });
+    return () => {
+      clearInterval(id);
+      sub.remove();
+    };
+  }, [enabled, online, qc]);
 }

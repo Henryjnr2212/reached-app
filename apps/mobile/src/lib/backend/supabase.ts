@@ -40,6 +40,9 @@ const FRIENDLY: Record<string, string> = {
 
 function fail(error: { message?: string; code?: string; hint?: string } | null): never {
   const raw = error?.message ?? 'unknown';
+  if (/failed to fetch|network request failed|networkerror|load failed|timeout/i.test(raw)) {
+    throw new BackendError('network', "You're offline. We'll send it when you're back online.");
+  }
   const key = Object.keys(FRIENDLY).find((k) => raw.includes(k));
   throw new BackendError(key ?? error?.code ?? 'error', error?.hint ?? (key ? FRIENDLY[key]! : "Something went wrong. Try again."));
 }

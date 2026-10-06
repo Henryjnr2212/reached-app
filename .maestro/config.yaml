@@ -1,0 +1,8 @@
+# Maestro flows for a development build on an Android emulator or phone.
+# Run: maestro test .maestro/   (app id comes from app.config.ts)
+# These need a device, so they are listed in MANUAL_TESTS.md; the same
+# journeys run in CI against the web build in e2e/mobile.
+flows:
+  - "*.yaml"
+excludeTags:
+  - util

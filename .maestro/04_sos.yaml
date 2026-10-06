@@ -1,0 +1,15 @@
+appId: com.osnwtech.reached
+name: Hold the shield, cancel, then send and end SOS
+---
+- launchApp
+- longPressOn: { id: "sos-shield" }
+- assertVisible: { id: "sos-countdown" }
+- tapOn: { id: "sos-cancel" }
+- assertVisible: { id: "home" }
+- longPressOn: { id: "sos-shield" }
+- extendedWaitUntil:
+    visible: { id: "sos-sent" }
+    timeout: 15000
+- tapOn: { id: "im-safe" }
+- tapOn: { id: "confirm-yes" }
+- assertVisible: { id: "home" }

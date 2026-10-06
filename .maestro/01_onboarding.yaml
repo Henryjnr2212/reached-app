@@ -1,0 +1,24 @@
+appId: com.osnwtech.reached
+name: Onboarding grants permissions, saves Home and ends on Home
+---
+- setLocation: { latitude: 5.6350, longitude: -0.1600 }
+- runFlow: _signin.yaml
+- tapOn: { id: "allow-location" }
+- runFlow:
+    when: { visible: "While using the app" }
+    commands: [{ tapOn: "While using the app" }]
+# Second step: "Allow all the time" opens system settings on Android 11+.
+- runFlow:
+    when: { visible: { id: "location-not-now" } }
+    commands: [{ tapOn: { id: "location-not-now" } }]
+- tapOn: { id: "notifications-on" }
+- runFlow:
+    when: { visible: "Allow" }
+    commands: [{ tapOn: "Allow" }]
+- runFlow:
+    when: { visible: { id: "battery-explainer" } }
+    commands: [{ tapOn: "Skip" }]
+- tapOn: { id: "loc-current" }
+- assertVisible: { id: "loc-chosen" }
+- tapOn: { id: "home-done" }
+- assertVisible: { id: "home" }

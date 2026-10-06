@@ -106,3 +106,22 @@ test('a trip needs someone to tell', async ({ page }) => {
   await byId(page, 'start-trip-submit').click();
   await expect(byId(page, 'start-error')).toHaveText('Choose at least one person to tell.');
 });
+
+test('an arrival with no internet waits and is sent when the connection is back', async ({ page, context }) => {
+  await signedIn(page, SEED);
+  await byId(page, 'quick-Work').click();
+  await byId(page, 'start-trip-submit').click();
+  await expect(byId(page, 'active-trip')).toBeVisible();
+
+  await context.setOffline(true);
+  await moveTo(page, WORK);
+  await page.waitForTimeout(1500);
+  await advance(page, 2);
+  await expect(byId(page, 'arrived-screen')).toBeVisible({ timeout: 15_000 });
+  await expect(byId(page, 'arrived-told')).toHaveText('Telling your people…');
+  expect((await demo<{ template: string }[]>(page, 'debugMessages')).some((m) => m.template === 'arrived')).toBe(false);
+
+  await context.setOffline(false);
+  await expect(byId(page, 'arrived-told')).toHaveText('Mom has been told.', { timeout: 15_000 });
+  expect((await demo<{ template: string }[]>(page, 'debugMessages')).filter((m) => m.template === 'arrived')).toHaveLength(1);
+});

@@ -17,3 +17,5 @@ jest.mock('@expo/vector-icons/Ionicons', () => {
   const { View } = jest.requireActual('react-native');
   return { __esModule: true, default: () => <View /> };
 });
+
+jest.mock('@react-native-async-storage/async-storage', () => jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'));
