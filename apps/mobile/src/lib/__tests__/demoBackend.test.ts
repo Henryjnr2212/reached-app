@@ -12,11 +12,16 @@ async function signedIn() {
   return { b, mom };
 }
 
-const flush = () => new Promise((r) => setTimeout(r, 5));
+// Runs the simulated provider's Sending → Sent → Delivered timers to the end.
+const flush = () => jest.runAllTimersAsync();
 
 describe('DemoBackend', () => {
   let b: DemoBackend;
-  afterEach(() => b?.dispose());
+  beforeEach(() => jest.useFakeTimers({ now: Date.UTC(2026, 9, 6, 9, 0) }));
+  afterEach(() => {
+    b?.dispose();
+    jest.useRealTimers();
+  });
 
   it('rejects a wrong code and a non-Ghana number', async () => {
     b = new DemoBackend({ persist: false, tick: false });
