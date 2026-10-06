@@ -1,0 +1,15 @@
+{
+  "name": "reached",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "eslint . --max-warnings=0",
+    "test": "pnpm --filter @reached/core test && pnpm --filter @reached/mobile test",
+    "test:db": "bash scripts/test-db.sh",
+    "test:functions": "bash scripts/test-functions.sh",
+    "test:e2e": "bash scripts/test-e2e.sh",
+    "format": "prettier --write ."
+  }
+}
