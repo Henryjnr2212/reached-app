@@ -536,6 +536,18 @@ export class DemoBackend implements Backend {
     return { isNew };
   }
 
+  async startPhoneChange(phone: string) {
+    if (!normalizeGhanaPhone(phone)) throw new BackendError('bad_phone', 'Enter a Ghana mobile number, like 024 123 4567.');
+  }
+
+  async confirmPhoneChange(phone: string, code: string) {
+    const e164 = normalizeGhanaPhone(phone);
+    if (!e164) throw new BackendError('bad_phone', 'Enter a Ghana mobile number.');
+    if (code !== DEMO_OTP) throw new BackendError('bad_code', "That code isn't right.");
+    this.me().phone = e164;
+    this.changed();
+  }
+
   async signOut() {
     this.s.userId = null;
     this.changed();

@@ -227,6 +227,9 @@ export interface Backend {
   sendOtp(phone: string): Promise<void>;
   verifyOtp(phone: string, code: string): Promise<{ isNew: boolean }>;
   signOut(): Promise<void>;
+  /** Change number: texts a code to the new number, then confirms it. */
+  startPhoneChange(phone: string): Promise<void>;
+  confirmPhoneChange(phone: string, code: string): Promise<void>;
 
   // Profile
   getProfile(): Promise<Profile>;

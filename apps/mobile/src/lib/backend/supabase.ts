@@ -281,6 +281,21 @@ export class SupabaseBackend implements Backend {
     return { isNew: !profile.onboardedAt };
   }
 
+  async startPhoneChange(phone: string) {
+    const e164 = normalizeGhanaPhone(phone);
+    if (!e164) throw new BackendError('bad_phone', 'Enter a Ghana mobile number, like 024 123 4567.');
+    const { error } = await this.client.auth.updateUser({ phone: e164 });
+    if (error) throw new BackendError('otp_failed', "We couldn't send the code. Check the number and try again.");
+  }
+
+  async confirmPhoneChange(phone: string, code: string) {
+    const e164 = normalizeGhanaPhone(phone);
+    if (!e164) throw new BackendError('bad_phone', 'Enter a Ghana mobile number.');
+    // The profile's phone follows auth.users through the on_auth_user_phone_changed trigger.
+    const { error } = await this.client.auth.verifyOtp({ phone: e164, token: code, type: 'phone_change' });
+    if (error) throw new BackendError('bad_code', "That code isn't right.");
+  }
+
   async signOut() {
     await this.client.auth.signOut();
   }

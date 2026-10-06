@@ -11,8 +11,11 @@ import { getNotificationAccess, pushToken } from '@/lib/device/notifications';
 import { updateTrackingCache } from '@/lib/device/tasks';
 import { processSample } from '@/lib/runTracker';
 import { useApp } from '@/lib/store';
+import { EMPTY_SMART, stepSmart, type SmartState } from '@/lib/smart';
 import { EMPTY_TRACKER, type TrackerState } from '@/lib/tracker';
-import { keys, TRIP_KEYS, useLiveTrip, usePlaces } from './queries';
+import { areaAt } from '@/lib/device/location';
+import { showLocal } from '@/lib/device/notifications';
+import { keys, TRIP_KEYS, useLiveTrip, usePlaces, useProfile } from './queries';
 
 /** Re-read permissions and battery state on launch and whenever the app returns to the foreground. */
 export function useDeviceStatus() {
@@ -50,14 +53,16 @@ export function useDeviceStatus() {
 export function useForegroundTracker(enabled: boolean) {
   const places = usePlaces();
   const trip = useLiveTrip(enabled);
+  const profile = useProfile(enabled);
+  const smart = useRef<SmartState>(EMPTY_SMART);
   const location = useApp((s) => s.location);
   const setApp = useApp((s) => s.set);
   const qc = useQueryClient();
   const state = useRef<TrackerState>(EMPTY_TRACKER);
   const last = useRef<Location.LocationObject | null>(null);
   const lastCheckin = useRef(0);
-  const data = useRef({ places: places.data ?? [], trip: trip.data ?? null });
-  data.current = { places: places.data ?? [], trip: trip.data ?? null };
+  const data = useRef({ places: places.data ?? [], trip: trip.data ?? null, profile: profile.data ?? null });
+  data.current = { places: places.data ?? [], trip: trip.data ?? null, profile: profile.data ?? null };
 
   useEffect(() => {
     if (enabled && places.data) void updateTrackingCache(places.data, trip.data ?? null);
@@ -79,8 +84,21 @@ export function useForegroundTracker(enabled: boolean) {
       busy = true;
       try {
         if (foreground) {
-          const r = await processSample(state.current, toSample(loc, backendNow()), data.current.places, data.current.trip);
+          const sample = toSample(loc, backendNow());
+          const r = await processSample(state.current, sample, data.current.places, data.current.trip);
           state.current = r.state;
+          const sm = stepSmart(smart.current, sample, r.actions, data.current.places, data.current.profile, data.current.trip);
+          smart.current = sm.state;
+          for (const e of sm.effects) {
+            if (e.type === 'heading_out') {
+              setApp({ headingOut: { from: e.place.name, at: sample.at } });
+              void showLocal('Heading out?', `Want us to tell your people when you arrive?`, { kind: 'heading_out' }, 'heading_out');
+            } else {
+              const area = await areaAt(e.at);
+              await getBackend().reportAutoArrival(area, e.at).catch(() => undefined);
+              await qc.invalidateQueries({ queryKey: keys.events });
+            }
+          }
           if (r.actions.length) {
             await Promise.all(TRIP_KEYS.map((k) => qc.invalidateQueries({ queryKey: k })));
             const arrived = r.actions.find((a) => a.type === 'trip_arrive');
