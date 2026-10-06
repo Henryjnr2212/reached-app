@@ -1,10 +1,11 @@
-import { describeRule, describeSchedule, MAX_PLACES, PLANS } from '@reached/core';
+import { describeRule, describeSchedule, MAX_PLACES, PLANS, suggestPlaces } from '@reached/core';
+import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TAB_BAR_SPACE } from '@/features/FloatingTabBar';
-import { useContacts, usePlaces, useProfile, useRules } from '@/lib/hooks/queries';
-import { Button, Card, EmptyState, IconButton, IconTile, PLACE_ICONS, SkeletonList, Text, useTheme } from '@/ui';
+import { useContacts, useEvents, usePlaces, useProfile, useRules } from '@/lib/hooks/queries';
+import { Button, Card, EmptyState, IconButton, IconTile, ListRow, PLACE_ICONS, SectionTitle, SkeletonList, Text, useTheme } from '@/ui';
 
 export default function Places() {
   const t = useTheme();
@@ -16,6 +17,18 @@ export default function Places() {
   const limit = Math.min(MAX_PLACES, PLANS[profile.data?.plan ?? 'free'].maxPlaces);
   const name = (id: string) => contacts.data?.find((c) => c.id === id)?.name ?? 'someone';
   const count = places.data?.length ?? 0;
+  const events = useEvents();
+  // Phase 2: spots you keep stopping at that aren't saved yet.
+  const suggestions = useMemo(
+    () =>
+      profile.data?.autoDetect && count < limit
+        ? suggestPlaces(
+            (events.data ?? []).filter((e) => e.point && e.kind === 'arrival').map((e) => ({ ...e.point!, name: e.placeName })),
+            places.data ?? [],
+          )
+        : [],
+    [events.data, places.data, profile.data?.autoDetect, count, limit],
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: t.colors.background, paddingTop: insets.top }} testID="places-tab">
@@ -46,6 +59,26 @@ export default function Places() {
               body="Add home, work or school. Reached will tell your people when you get there."
               action={<Button label="Add place" icon="add" full={false} onPress={() => router.push('/place/new')} />}
             />
+          }
+          ListFooterComponent={
+            suggestions.length ? (
+              <View style={{ gap: 8, marginTop: 8 }} testID="suggested-places">
+                <SectionTitle>Suggested</SectionTitle>
+                <Card padded={false}>
+                  {suggestions.map((sg) => (
+                    <ListRow
+                      key={`${sg.lat},${sg.lng}`}
+                      title={sg.name}
+                      subtitle={`You've stopped here ${sg.visits} times`}
+                      icon="sparkles"
+                      tint="info"
+                      onPress={() => router.push({ pathname: '/place/new', params: { name: sg.name, lat: String(sg.lat), lng: String(sg.lng) } })}
+                      testID={`suggest-${sg.name}`}
+                    />
+                  ))}
+                </Card>
+              </View>
+            ) : null
           }
           renderItem={({ item }) => {
             const own = (rules.data ?? []).filter((r) => r.placeId === item.id);

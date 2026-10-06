@@ -21,10 +21,18 @@ import { keys, TRIP_KEYS, useContacts, useLiveTrip, usePlaces, useProfile, useRu
 /** Re-read permissions and battery state on launch and whenever the app returns to the foreground. */
 export function useDeviceStatus() {
   const set = useApp((s) => s.set);
+  const last = useRef<{ location: string; battery: string } | null>(null);
   useEffect(() => {
     const refresh = async () => {
       const [location, notifications, restricted] = await Promise.all([getLocationAccess(), getNotificationAccess(), batteryRestricted()]);
-      set({ location, notifications, battery: Platform.OS === 'android' ? (restricted ? 'restricted' : 'ok') : 'ok' });
+      const battery = Platform.OS === 'android' ? (restricted ? 'restricted' : 'ok') : 'ok';
+      set({ location, notifications, battery });
+      // Spec §12 "Arrivals may not work": something that used to be fine was turned off.
+      const prev = last.current;
+      if (prev && ((prev.location === 'always' && location !== 'always') || (prev.battery === 'ok' && battery === 'restricted'))) {
+        void showLocal('Arrivals may not work', 'A permission or battery setting changed. Tap Fix to turn it back on.', { kind: 'permissions' }, 'permissions');
+      }
+      last.current = { location, battery };
     };
     void refresh();
     const sub = AppState.addEventListener('change', (s) => {

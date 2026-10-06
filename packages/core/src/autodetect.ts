@@ -126,3 +126,38 @@ export function areaName(geo: { district?: string | null; subregion?: string | n
   if (!geo) return 'their destination';
   return geo.district || geo.subregion || geo.city || geo.street || 'their destination';
 }
+
+export interface PlaceSuggestion extends LatLng {
+  /** Area name from the visits (e.g. "East Legon"). */
+  name: string;
+  visits: number;
+}
+
+/**
+ * Places tab "Suggested" (Phase 2): spots the user has stopped at at least
+ * twice (auto-detected arrivals, map-pin trips) that aren't saved yet.
+ */
+export function suggestPlaces(
+  visits: (LatLng & { name: string | null })[],
+  saved: Zone[],
+  opts: { clusterM?: number; minVisits?: number; max?: number } = {},
+): PlaceSuggestion[] {
+  const clusterM = opts.clusterM ?? 150;
+  const minVisits = opts.minVisits ?? 2;
+  const clusters: { points: (LatLng & { name: string | null })[] }[] = [];
+  for (const v of visits) {
+    if (saved.some((z) => distanceMeters(z, v) <= z.radius + 50)) continue;
+    const c = clusters.find((k) => distanceMeters(centroid(k.points), v) <= clusterM);
+    if (c) c.points.push(v);
+    else clusters.push({ points: [v] });
+  }
+  return clusters
+    .filter((c) => c.points.length >= minVisits)
+    .map((c) => {
+      const names = c.points.map((p) => p.name).filter((n): n is string => !!n);
+      const name = names.sort((a, b) => names.filter((n) => n === b).length - names.filter((n) => n === a).length)[0] ?? 'Somewhere new';
+      return { ...centroid(c.points), name, visits: c.points.length };
+    })
+    .sort((a, b) => b.visits - a.visits)
+    .slice(0, opts.max ?? 3);
+}

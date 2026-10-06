@@ -51,3 +51,18 @@ test('deleting a place removes it from the list', async ({ page }) => {
   await expect(byId(page, 'places-tab')).toBeVisible();
   await expect(byId(page, 'place-Gym')).toHaveCount(0);
 });
+
+test('a spot I keep stopping at is suggested and can be saved', async ({ page }) => {
+  await signedIn(page, { profile: { autoDetect: true } });
+  const legon = { lat: 5.635, lng: -0.1615 };
+  await demo(page, 'reportAutoArrival', 'East Legon', legon);
+  await advance(page, 120);
+  await demo(page, 'reportAutoArrival', 'East Legon', { lat: legon.lat + 0.0002, lng: legon.lng });
+  await byId(page, 'tab-places').click();
+  await expect(byId(page, 'suggested-places')).toBeVisible();
+  await byId(page, 'suggest-East Legon').click();
+  await expect(byId(page, 'place-name')).toHaveValue('East Legon');
+  await expect(byId(page, 'loc-chosen')).toBeVisible();
+  await byId(page, 'place-save').click();
+  await expect(byId(page, 'place-detail')).toBeVisible();
+});

@@ -1,5 +1,5 @@
 import { activityFixtures } from './fixtures.ts';
-import { detectAutoArrival, detectHeadingOut, findStays, areaName } from '../src/autodetect.ts';
+import { detectAutoArrival, detectHeadingOut, findStays, areaName, suggestPlaces } from '../src/autodetect.ts';
 import { matchesFilter, overallStatus, toldWho, eventTitle, statusLabel } from '../src/activity.ts';
 import { detectBrand, BATTERY_GUIDES } from '../src/battery.ts';
 import { guessRelationship, initials, validateContact } from '../src/contacts.ts';
@@ -152,5 +152,34 @@ describe('safety and plans (Phase 3)', () => {
     expect(detectBrand('samsung')).toBe('samsung');
     expect(detectBrand(undefined)).toBe('other');
     expect(BATTERY_GUIDES.tecno.steps.length).toBeGreaterThan(1);
+  });
+});
+
+describe('suggested places (Phase 2)', () => {
+  const legon = { lat: 5.635, lng: -0.1615 };
+  const work = { lat: 5.6037, lng: -0.187, radius: 150 };
+
+  it('suggests a spot visited at least twice that is not saved', () => {
+    const s = suggestPlaces(
+      [
+        { ...legon, name: 'East Legon' },
+        { lat: legon.lat + 0.0003, lng: legon.lng, name: 'East Legon' },
+        { lat: 5.55, lng: -0.21, name: 'Korle Bu' },
+        { ...work, name: 'Ridge' },
+        { ...work, name: 'Ridge' },
+      ],
+      [work],
+    );
+    expect(s).toHaveLength(1);
+    expect(s[0]).toMatchObject({ name: 'East Legon', visits: 2 });
+    expect(s[0]!.lat).toBeCloseTo(legon.lat + 0.00015, 5);
+  });
+
+  it('returns nothing without repeat visits', () => {
+    expect(suggestPlaces([{ ...legon, name: null }], [])).toEqual([]);
+  });
+
+  it('names an unnamed cluster', () => {
+    expect(suggestPlaces([{ ...legon, name: null }, { ...legon, name: null }], [])[0]?.name).toBe('Somewhere new');
   });
 });

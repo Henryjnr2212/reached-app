@@ -18,13 +18,19 @@ const QUICK = [
 ];
 
 /** Add / edit place: quick-pick names, icon, location and the arrival zone. */
-export function PlaceForm({ place }: { place?: Place }) {
+export function PlaceForm({ place, initial }: { place?: Place; initial?: { name: string; lat: number; lng: number } }) {
   const t = useTheme();
   const places = usePlaces();
   const profile = useProfile();
-  const [name, setName] = useState(place?.name ?? '');
+  const [name, setName] = useState(place?.name ?? initial?.name ?? '');
   const [icon, setIcon] = useState(place?.icon ?? 'pin');
-  const [loc, setLoc] = useState<PickedLocation | null>(place ? { lat: place.lat, lng: place.lng, address: place.address, ghanaPostGps: place.ghanaPostGps } : null);
+  const [loc, setLoc] = useState<PickedLocation | null>(
+    place
+      ? { lat: place.lat, lng: place.lng, address: place.address, ghanaPostGps: place.ghanaPostGps }
+      : initial
+        ? { lat: initial.lat, lng: initial.lng, address: initial.name, ghanaPostGps: null }
+        : null,
+  );
   const [radius, setRadius] = useState(place?.radius ?? ZONE_DEFAULT_M);
   const [nameError, setNameError] = useState<string | null>(null);
   const save = useAction(
