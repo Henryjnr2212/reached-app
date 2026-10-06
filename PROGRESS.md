@@ -138,6 +138,15 @@ Last full run of all six checks: see the bottom of this file.
 - [x] 14.1 EAS build profiles (`apps/mobile/eas.json`) and Maestro flows (`.maestro/`). Device runs → manual (build section).
 - [ ] 14.2 Live credentials, store accounts and on-device checks → `MANUAL_TESTS.md` (cannot be done from here).
 
-## Last full run
+## Last full run (2026-10-06, commit after this file)
 
-See the final summary in the project thread for the exact output of `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:db`, `pnpm test:functions` and `pnpm test:e2e`.
+| Command | Exit | Result |
+|---|---|---|
+| pnpm typecheck | 0 | core, mobile, web tsc + deno check clean |
+| pnpm lint | 0 | eslint (max warnings 0) + deno lint clean |
+| pnpm test | 0 | core 241 passed; mobile 35 passed |
+| pnpm test:db | 0 | 12 files, 213 pgTAP assertions, PASS |
+| pnpm test:functions | 0 | 74 passed, 0 failed |
+| pnpm test:e2e | 0 | web 76 passed; mobile 54 passed (light + dark) |
+
+No skipped tests. Full logs: `/mnt/project-files/reached-app/check-logs/`.
