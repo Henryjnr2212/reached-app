@@ -120,7 +120,7 @@ export function Segmented<T extends string | number>({
             onPress={() => onChange(o.value)}
             style={{
               flex: 1,
-              minHeight: TOUCH_TARGET - 4,
+              minHeight: TOUCH_TARGET,
               borderRadius: 999,
               alignItems: 'center',
               justifyContent: 'center',

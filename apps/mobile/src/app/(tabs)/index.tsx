@@ -141,7 +141,7 @@ export default function Home() {
 
           <SectionTitle
             action={
-              <Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/activity')} style={{ minHeight: 48, justifyContent: 'center' }}>
+              <Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/activity')} style={{ minHeight: 48, minWidth: 48, justifyContent: 'center', alignItems: 'flex-end' }}>
                 <Text variant="label" tone="primary">
                   See all
                 </Text>

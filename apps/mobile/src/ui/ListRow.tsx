@@ -1,6 +1,6 @@
 import { TOUCH_TARGET } from '@reached/core';
 import type { ReactNode } from 'react';
-import { Pressable, Switch, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { haptic } from '@/lib/device/haptics';
 import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
@@ -110,28 +110,39 @@ export function SwitchRow({
   testID?: string;
 }) {
   const t = useTheme();
+  // The whole row is the switch, so the tap target is the row, not the small thumb.
+  const toggle = () => {
+    haptic.tap();
+    onChange(!value);
+  };
   return (
-    <ListRow
-      title={title}
-      subtitle={subtitle}
-      icon={icon}
-      tint={tint}
-      chevron={false}
-      right={
-        <Switch
-          testID={testID}
-          accessibilityLabel={title}
-          value={value}
-          disabled={disabled}
-          onValueChange={(v) => {
-            haptic.tap();
-            onChange(v);
-          }}
-          trackColor={{ true: t.colors.primary, false: t.colors.border }}
-          thumbColor={t.colors.surface}
-        />
-      }
-    />
+    <Pressable
+      testID={testID}
+      accessibilityRole="switch"
+      accessibilityLabel={subtitle ? `${title}, ${subtitle}` : title}
+      accessibilityState={{ checked: value, disabled: !!disabled }}
+      disabled={disabled}
+      onPress={toggle}
+      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: TOUCH_TARGET + 12, paddingVertical: 8, paddingHorizontal: 14, opacity: disabled ? 0.5 : pressed ? 0.7 : 1 })}
+    >
+      {icon ? <IconTile icon={icon} tint={tint} /> : null}
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text variant="bodyStrong" numberOfLines={2}>
+          {title}
+        </Text>
+        {subtitle ? (
+          <Text variant="caption" tone="muted" numberOfLines={3}>
+            {subtitle}
+          </Text>
+        ) : null}
+      </View>
+      {/* Drawn rather than a native Switch so the row stays the only control. */}
+      <View
+        style={{ width: 46, height: 28, borderRadius: 14, padding: 3, backgroundColor: value ? t.colors.primary : t.colors.textSubtle, alignItems: value ? 'flex-end' : 'flex-start' }}
+      >
+        <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: t.colors.surface, ...t.shadow, shadowOpacity: 0.2, shadowRadius: 2, elevation: 2 }} />
+      </View>
+    </Pressable>
   );
 }
 

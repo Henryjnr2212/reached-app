@@ -43,7 +43,7 @@ export function Chip({
       }
       style={({ pressed }) => [
         {
-          minHeight: TOUCH_TARGET - 4,
+          minHeight: TOUCH_TARGET,
           paddingHorizontal: 16,
           borderRadius: t.radius.pill,
           backgroundColor: selected ? t.colors.accent : t.colors.surface,
