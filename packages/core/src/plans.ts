@@ -22,10 +22,10 @@ export const PLANS: Record<PlanId, Plan> = {
     name: 'Free',
     priceGhsMonthly: 0,
     maxContacts: 5,
-    maxPlaces: 5,
+    maxPlaces: 10,
     smsPerMonth: 30,
     familyMembers: 0,
-    features: ['Arrival texts', 'Overdue alerts', 'SOS', '5 people · 5 places'],
+    features: ['Arrival texts', 'Overdue alerts', 'SOS', '5 people · 10 places'],
   },
   premium: {
     id: 'premium',

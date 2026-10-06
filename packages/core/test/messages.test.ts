@@ -32,7 +32,7 @@ const long: MessageParams = {
 
 const ALL: TemplateKey[] = [
   'intro', 'arrived', 'left', 'on_the_way', 'running_late', 'plans_changed', 'overdue_alert',
-  'sos', 'all_clear', 'request_accept', 'request_decline', 'request_unknown', 'test', 'otp',
+  'sos', 'all_clear', 'request_accept', 'request_decline', 'request_unknown', 'request_pending', 'test', 'otp',
 ];
 
 describe('SPEC §11 wording', () => {

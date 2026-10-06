@@ -18,6 +18,7 @@ export type TemplateKey =
   | 'request_accept'
   | 'request_decline'
   | 'request_unknown'
+  | 'request_pending'
   | 'test'
   | 'otp';
 
@@ -71,6 +72,7 @@ const EN: Record<TemplateKey, Renderer> = {
   all_clear: (p) => `${p.name} is safe and confirmed at ${p.time}. - Reached`,
   request_accept: (p) => `${p.name} will let you know when ${p.name} reaches.`,
   request_decline: (p) => `${p.name} can't share right now.`,
+  request_pending: (p) => `${p.name} hasn't responded yet. - Reached`,
   request_unknown: () => `Reached: we couldn't find who you're asking about. Ask them to add you as a contact first.`,
   test: (p) => `This is a test from Reached on ${p.name}'s phone. No action needed.`,
   otp: (p) =>
