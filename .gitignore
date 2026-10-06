@@ -18,3 +18,4 @@ test-results/
 supabase/.temp/
 *.tsbuildinfo
 next-env.d.ts
+.claude/
