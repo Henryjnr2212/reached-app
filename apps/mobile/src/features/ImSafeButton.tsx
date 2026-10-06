@@ -1,5 +1,5 @@
+import { goHome } from '@/lib/nav';
 import { useQueryClient } from '@tanstack/react-query';
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { useBackend } from '@/lib/backend';
 import { haptic } from '@/lib/device/haptics';
@@ -22,7 +22,7 @@ export function ImSafeButton() {
       await b.imSafe();
       haptic.success();
       await Promise.all(TRIP_KEYS.map((k) => qc.invalidateQueries({ queryKey: k })));
-      router.replace('/(tabs)');
+      goHome();
     } catch (e) {
       setError(errorMessage(e));
     } finally {

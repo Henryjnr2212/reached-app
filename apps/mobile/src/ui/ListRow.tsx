@@ -72,7 +72,7 @@ export function ListRow({
       {chevron ? <Icon name="chevron-forward" size={18} color={t.colors.textMuted} /> : null}
     </>
   );
-  const style = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 14, minHeight: TOUCH_TARGET + 12, paddingVertical: 8 };
+  const style = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 14, minHeight: TOUCH_TARGET + 12, paddingVertical: 8, paddingHorizontal: 14 };
   if (!onPress) return <View testID={testID} style={style}>{content}</View>;
   return (
     <Pressable

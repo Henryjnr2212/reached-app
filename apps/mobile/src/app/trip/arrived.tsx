@@ -1,3 +1,4 @@
+import { goHome } from '@/lib/nav';
 import { toldWho } from '@reached/core';
 import { router, useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
@@ -53,7 +54,7 @@ export default function Arrived() {
       )}
       <View style={{ flex: 1 }} />
       {event ? <Button label="See details" variant="ghost" onPress={() => router.push({ pathname: '/event/[id]', params: { id: event.id } })} /> : null}
-      <Button label="Done" variant="accent" onPress={() => router.replace('/(tabs)')} testID="arrived-done" />
+      <Button label="Done" variant="accent" onPress={() => goHome()} testID="arrived-done" />
     </View>
   );
 }

@@ -1,3 +1,4 @@
+import { goHome } from '@/lib/nav';
 import { SOS_SHARE_INTERVAL_S, toldWho } from '@reached/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
@@ -101,7 +102,7 @@ export default function Sos() {
           onPress={() => {
             setCount(null);
             if (router.canGoBack()) router.back();
-            else router.replace('/(tabs)');
+            else goHome();
           }}
           style={{ minHeight: 72 }}
         />

@@ -1,4 +1,4 @@
-import { ACCRA, greetingFor } from '@reached/core';
+import { ACCRA, distanceMeters, greetingFor } from '@reached/core';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Image, Pressable, ScrollView, View } from 'react-native';
@@ -32,6 +32,9 @@ export default function Home() {
   const live = trip.data;
   const unread = (notes.data ?? []).filter((n) => !n.readAt).length;
   const center = live?.dest ?? here ?? places.data?.[0] ?? ACCRA;
+  // Fit the nearest saved places around you, within reason.
+  const near = (places.data ?? []).map((pl) => distanceMeters(center, pl)).sort((a, b) => a - b);
+  const span = live?.dest ? 2500 : Math.min(8000, Math.max(1800, (near[1] ?? near[0] ?? 0) * 2.6));
   const markers = [
     ...(places.data ?? []).map((pl) => ({ id: pl.id, label: pl.name, kind: 'place' as const, lat: pl.lat, lng: pl.lng })),
     ...(live?.dest ? [{ id: 'dest', label: live.destName ?? 'Destination', kind: 'destination' as const, ...live.dest }] : []),
@@ -43,7 +46,7 @@ export default function Home() {
         <View style={{ height: 340 + insets.top }}>
           <Map
             center={center}
-            span={live?.dest ? 2500 : 1800}
+            span={span}
             markers={markers}
             me={here}
             zone={live?.dest ? { ...live.dest, radius: live.radius } : null}
@@ -60,11 +63,16 @@ export default function Home() {
             >
               {p?.photoUri ? <Image source={{ uri: p.photoUri }} style={{ width: 46, height: 46, borderRadius: 23 }} /> : <Avatar name={p?.firstName ?? '?'} size={46} />}
             </Pressable>
-            <View style={{ flex: 1, backgroundColor: t.colors.surface, borderRadius: 999, paddingHorizontal: 16, minHeight: 48, justifyContent: 'center', ...t.shadow }}>
+            <View style={{ flex: 1, backgroundColor: t.colors.surface, borderRadius: 999, paddingHorizontal: 18, minHeight: 52, justifyContent: 'center', ...t.shadow }}>
               {p ? (
-                <Text variant="headline" numberOfLines={1} testID="greeting">
-                  {greetingFor(new Date(backendNow()))}, {p.firstName}
-                </Text>
+                <View testID="greeting" accessibilityLabel={`${greetingFor(new Date(backendNow()))}, ${p.firstName}`}>
+                  <Text variant="small" tone="muted" numberOfLines={1}>
+                    {greetingFor(new Date(backendNow()))}
+                  </Text>
+                  <Text variant="headline" numberOfLines={1}>
+                    {p.firstName}
+                  </Text>
+                </View>
               ) : (
                 <Skeleton width={140} />
               )}

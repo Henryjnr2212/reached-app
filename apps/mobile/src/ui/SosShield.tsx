@@ -40,15 +40,18 @@ export function SosShield({ onTrigger, holdSeconds = SOS_HOLD_SECONDS, size = 56
       }
     });
   };
+  const showHint = () => {
+    setHint(true);
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+    hintTimer.current = setTimeout(() => setHint(false), 2200);
+  };
   const stop = () => {
-    progress.stopAnimation((v) => {
-      if (!fired.current && v < 0.9) {
-        setHint(true);
-        if (hintTimer.current) clearTimeout(hintTimer.current);
-        hintTimer.current = setTimeout(() => setHint(false), 2200);
-      }
-    });
+    progress.stopAnimation();
     Animated.timing(progress, { toValue: 0, duration: 150, useNativeDriver: false }).start();
+  };
+  // Released before the hold completed (a tap or an early let-go).
+  const release = () => {
+    if (!fired.current) showHint();
   };
 
   return (
@@ -62,6 +65,7 @@ export function SosShield({ onTrigger, holdSeconds = SOS_HOLD_SECONDS, size = 56
         onAccessibilityAction={(e) => e.nativeEvent.actionName === 'longpress' && onTrigger()}
         onPressIn={start}
         onPressOut={stop}
+        onPress={release}
         style={{ width: s, height: s, alignItems: 'center', justifyContent: 'center' }}
       >
         <View

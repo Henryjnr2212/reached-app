@@ -1,6 +1,7 @@
+import { goHome } from '@/lib/nav';
 import { ACCRA, formatDuration, RUNNING_LATE_OPTIONS, toldWho } from '@reached/core';
 import { useQueryClient } from '@tanstack/react-query';
-import { router } from 'expo-router';
+import { router, useIsFocused } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Share, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,9 +30,11 @@ export default function ActiveTrip() {
   const [error, setError] = useState<string | null>(null);
 
   const tr = trip.data;
+  // Only when this screen is on top: an arrival or SOS pushed above it handles navigation itself.
+  const focused = useIsFocused();
   useEffect(() => {
-    if (!trip.isLoading && !tr) router.replace('/(tabs)');
-  }, [trip.isLoading, tr]);
+    if (focused && !trip.isLoading && !tr) goHome();
+  }, [focused, trip.isLoading, tr]);
 
   if (!tr) {
     return (
@@ -74,7 +77,7 @@ export default function ActiveTrip() {
         accessibilityLabel="Map with your position and destination"
       />
       <View style={{ position: 'absolute', top: insets.top + 12, left: 16, right: 16, flexDirection: 'row', justifyContent: 'space-between' }}>
-        <IconButton icon="chevron-back" label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))} testID="back" />
+        <IconButton icon="chevron-back" label="Back" onPress={() => (router.canGoBack() ? router.back() : goHome())} testID="back" />
         <SosShield onTrigger={() => router.push('/sos')} holdSeconds={profile.data?.sosHoldSeconds} />
       </View>
 
@@ -158,7 +161,7 @@ export default function ActiveTrip() {
             loading={busy === 'quiet'}
             testID="cancel-quietly"
             onPress={async () => {
-              if (await run('quiet', () => b.cancelTrip(tr.id, false))) router.replace('/(tabs)');
+              if (await run('quiet', () => b.cancelTrip(tr.id, false))) goHome();
             }}
           />
           <Button
@@ -167,7 +170,7 @@ export default function ActiveTrip() {
             loading={busy === 'tell'}
             testID="cancel-tell"
             onPress={async () => {
-              if (await run('tell', () => b.cancelTrip(tr.id, true))) router.replace('/(tabs)');
+              if (await run('tell', () => b.cancelTrip(tr.id, true))) goHome();
             }}
           />
           <Button label="Keep trip" variant="ghost" onPress={() => setCancel(false)} />

@@ -34,7 +34,7 @@ export function LocationPicker({
   const t = useTheme();
   const b = useBackend();
   const here = useApp((s) => s.here);
-  const [mode, setMode] = useState<Mode>('current');
+  const [mode, setMode] = useState<Mode | null>(null);
   const [q, setQ] = useState('');
   const [gps, setGps] = useState('');
   const [busy, setBusy] = useState(false);

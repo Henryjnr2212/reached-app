@@ -105,6 +105,7 @@ export function LiveMap({ points, label, height = 300 }: Props) {
     }
     fitted.current = true;
     // `key` stands in for `points` so markers only redraw when positions change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- key covers points
   }, [ready, key]);
 
   if (failed) {

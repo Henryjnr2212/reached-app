@@ -1,7 +1,8 @@
+import { goHome } from '@/lib/nav';
 import { formatClock, formatDuration, MORE_TIME_OPTIONS, overdueSecondsLeft, toldWho } from '@reached/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EmergencyNumbers } from '@/features/EmergencyNumbers';
@@ -27,6 +28,7 @@ export default function Overdue() {
   const [now, setNow] = useState(backendNow());
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const leaving = useRef(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(backendNow()), 1000);
@@ -35,11 +37,11 @@ export default function Overdue() {
 
   const tr = trip.data;
   useEffect(() => {
-    if (trip.isLoading || sos.isLoading) return;
+    if (trip.isLoading || sos.isLoading || leaving.current) return;
     if (!tr && sos.data) router.replace('/sos');
     else if (!tr || (tr.status !== 'overdue' && tr.status !== 'alerted')) {
       if (router.canGoBack()) router.back();
-      else router.replace('/(tabs)');
+      else goHome();
     }
   }, [tr, sos.data, trip.isLoading, sos.isLoading]);
 
@@ -50,8 +52,9 @@ export default function Overdue() {
     setError(null);
     try {
       await fn();
-      await Promise.all(TRIP_KEYS.map((k) => qc.invalidateQueries({ queryKey: k })));
+      leaving.current = true;
       after();
+      await Promise.all(TRIP_KEYS.map((k) => qc.invalidateQueries({ queryKey: k })));
     } catch (e) {
       setError(errorMessage(e));
     } finally {
@@ -139,7 +142,7 @@ export default function Overdue() {
               variant="secondary"
               loading={busy === 'going'}
               testID="still-going"
-              onPress={() => void run('going', () => b.respondOverdue(tr.id, 'still_going'), () => router.replace('/trip/active'))}
+              onPress={() => void run('going', () => b.respondOverdue(tr.id, 'still_going'), () => router.dismissTo('/trip/active'))}
             />
           </View>
         ) : (
@@ -151,7 +154,7 @@ export default function Overdue() {
                 variant="secondary"
                 loading={busy === `t${m}`}
                 testID={`more-${m}`}
-                onPress={() => void run(`t${m}`, () => b.respondOverdue(tr.id, 'more_time', m), () => router.replace('/trip/active'))}
+                onPress={() => void run(`t${m}`, () => b.respondOverdue(tr.id, 'more_time', m), () => router.dismissTo('/trip/active'))}
               />
             ))}
             <Button label="Back" variant="ghost" onPress={() => setStep('ask')} />

@@ -1,3 +1,4 @@
+import { startAtHome } from '@/lib/nav';
 import { formatGhanaPhone } from '@reached/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
@@ -38,7 +39,7 @@ export default function Verify() {
       haptic.success();
       await qc.resetQueries();
       if (isNew) router.replace('/onboarding/name');
-      else router.replace('/(tabs)');
+      else startAtHome();
     } catch {
       haptic.warning();
       setError("That code isn't right.");

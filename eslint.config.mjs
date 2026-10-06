@@ -6,7 +6,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 export default tseslint.config(
   {
     ignores: [
-      '**/node_modules/**', '**/dist/**', '**/.expo/**', '**/.next/**', '**/out/**', '**/coverage/**',
+      '**/node_modules/**', '.tmp/**', '.claude/**', '**/dist/**', '**/.expo/**', '**/.next/**', '**/out/**', '**/coverage/**',
       'apps/mobile/android/**', 'apps/mobile/ios/**', 'supabase/functions/**', 'playwright-report/**',
       'test-results/**', '**/*.config.js', '**/*.config.cjs', '**/babel.config.cjs', '**/next-env.d.ts',
       'apps/mobile/expo-env.d.ts',

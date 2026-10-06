@@ -1,5 +1,5 @@
+import { startAtHome } from '@/lib/nav';
 import { useQueryClient } from '@tanstack/react-query';
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { EVERY_DAY, ZONE_DEFAULT_M } from '@reached/core';
@@ -33,7 +33,7 @@ export default function HomePlace() {
       await b.updateProfile({ onboardedAt: new Date().toISOString() });
       haptic.success();
       await qc.invalidateQueries();
-      router.replace('/(tabs)');
+      startAtHome();
     } catch (e) {
       setError(errorMessage(e));
     } finally {

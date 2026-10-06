@@ -100,9 +100,10 @@ export function useForegroundTracker(enabled: boolean) {
             }
           }
           if (r.actions.length) {
-            await Promise.all(TRIP_KEYS.map((k) => qc.invalidateQueries({ queryKey: k })));
+            // Show the arrival before the trip query empties, so the trip screen doesn't send us Home first.
             const arrived = r.actions.find((a) => a.type === 'trip_arrive');
             if (arrived) router.push({ pathname: '/trip/arrived', params: { tripId: arrived.tripId } });
+            await Promise.all(TRIP_KEYS.map((k) => qc.invalidateQueries({ queryKey: k })));
           }
         }
         const t = data.current.trip;
@@ -126,7 +127,12 @@ export function useForegroundTracker(enabled: boolean) {
     // Staying still produces no new positions; re-feed the last one so the
     // minimum stop time can complete.
     const timer = setInterval(() => {
-      if (last.current) void handle(last.current);
+      if (Platform.OS === 'web') {
+        // Browsers only report changes; ask for the current fix instead.
+        void Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
+          .then((loc) => handle(loc))
+          .catch(() => (last.current ? handle(last.current) : undefined));
+      } else if (last.current) void handle(last.current);
     }, 5_000);
     return () => {
       cancelled = true;

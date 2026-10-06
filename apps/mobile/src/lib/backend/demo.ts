@@ -151,6 +151,20 @@ export class DemoBackend implements Backend {
     this.s = raw ? (JSON.parse(raw) as State) : emptyState();
     this.persist = persist;
     if (opts.tick ?? true) this.ticker = setInterval(() => this.tick(), 1000);
+    // Resume simulated deliveries interrupted by a reload.
+    for (const m of this.s.messages) {
+      if (m.status === 'pending' || m.status === 'sending') this.deliver(m);
+      else if (m.status === 'sent') {
+        this.timers.push(
+          setTimeout(() => {
+            if (m.status === 'sent') {
+              m.status = 'delivered';
+              this.changed();
+            }
+          }, this.deliverDelayMs),
+        );
+      }
+    }
   }
 
   private persist: boolean;
@@ -1077,6 +1091,13 @@ export class DemoBackend implements Backend {
   }
 
   async reportProblem() {}
+
+  /** The demo's fake_messages: every text that "went out", newest last. */
+  debugMessages() {
+    return this.s.messages
+      .filter((m) => m.status !== 'held' && m.status !== 'cancelled')
+      .map((m) => ({ toPhone: m.toPhone, contactName: m.contactName, channel: m.channel, template: m.template, status: m.status, body: m.body }));
+  }
 
   /** Exposed for unit tests. */
   get debug() {
