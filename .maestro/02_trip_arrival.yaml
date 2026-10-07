@@ -1,0 +1,20 @@
+appId: com.osnwtech.reached
+name: A trip home is detected on arrival (mocked GPS)
+---
+# Needs 01_onboarding first (Home saved at 5.6350,-0.1600).
+- setLocation: { latitude: 5.5600, longitude: -0.2050 }
+- launchApp
+- tapOn: { id: "quick-Home" }
+- tapOn: { id: "start-trip-submit" }
+- assertVisible: { id: "active-trip" }
+- travel:
+    points:
+      - 5.5600,-0.2050
+      - 5.6000,-0.1800
+      - 5.6350,-0.1600
+    speed: 40
+- extendedWaitUntil:
+    visible: { id: "arrived-screen" }
+    timeout: 240000
+- assertVisible: { id: "arrived-told" }
+- tapOn: { id: "arrived-done" }

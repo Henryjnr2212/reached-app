@@ -1,0 +1,17 @@
+appId: com.osnwtech.reached
+name: Home rule fires with the app in the background
+---
+# Needs 01_onboarding with "Tell Mom when you get home" on and location set to "Allow all the time".
+- setLocation: { latitude: 5.5600, longitude: -0.2050 }
+- launchApp
+- assertVisible: { id: "home" }
+- pressKey: Home
+- travel:
+    points:
+      - 5.5600,-0.2050
+      - 5.6350,-0.1600
+    speed: 40
+- waitForAnimationToEnd: { timeout: 240000 }
+- launchApp
+- tapOn: { id: "tab-activity" }
+- assertVisible: "Reached Home"
