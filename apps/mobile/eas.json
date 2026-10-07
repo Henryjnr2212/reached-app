@@ -13,7 +13,12 @@
     },
     "preview": {
       "distribution": "internal",
-      "android": { "buildType": "apk" }
+      "android": { "buildType": "apk" },
+      "env": {
+        "EXPO_PUBLIC_BACKEND": "supabase",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://rkikylrtgkgbererlswt.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_zcokph5hyBIWrtadxmOsgQ_H-gyQGty"
+      }
     },
     "production": {
       "autoIncrement": true
