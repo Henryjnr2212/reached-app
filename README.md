@@ -44,7 +44,7 @@ In fake mode every text goes to the `public.fake_messages` table instead of a ph
 
 ## Checks
 
-All six must exit 0 with no skipped tests:
+All six must exit 0 with no skipped tests. There is no hosted CI yet, so run them locally before merging (a GitHub Actions version is in git history: `git show 7cf8c2e:.github/workflows/checks.yml`):
 
 ```bash
 pnpm typecheck        # tsc + deno check
