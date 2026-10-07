@@ -1,0 +1,21 @@
+appId: com.osnwtech.reached
+tags: [util]
+---
+# Fresh install against the demo backend (EXPO_PUBLIC_BACKEND=demo) or local
+# Supabase with the test OTP 123456 for +233241234567.
+- launchApp:
+    clearState: true
+- tapOn: "Skip"
+- tapOn: { id: "phone-input" }
+- inputText: "0241234567"
+- tapOn: { id: "send-code" }
+- inputText: "123456"
+- tapOn: { id: "name-input" }
+- inputText: "Ama"
+- tapOn: { id: "name-continue" }
+- tapOn: { id: "enter-number" }
+- tapOn: { id: "contact-name" }
+- inputText: "Mom"
+- tapOn: { id: "contact-phone" }
+- inputText: "0201112222"
+- tapOn: { id: "contact-save" }

@@ -1,0 +1,103 @@
+# Supabase CLI configuration for Reached (local development; hosted projects
+# mirror these settings in the dashboard).
+project_id = "reached"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "https://reached.app"
+additional_redirect_urls = ["reached://"]
+# Access tokens live 1 hour; delete-account additionally requires a token
+# issued in the last 10 minutes (the app re-verifies the phone OTP first).
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+enable_signup = true
+enable_anonymous_sign_ins = false
+
+# Phone + OTP is the only sign-in method.
+[auth.sms]
+enable_signup = true
+enable_confirmations = true
+template = "Your Reached code is {{ .Code }}"
+max_frequency = "60s"
+
+# Every auth SMS (sign-in, re-verify before delete) goes through our own
+# send-sms Edge Function, which uses Africa's Talking in live mode and
+# public.fake_messages otherwise.
+[auth.hook.send_sms]
+enabled = true
+uri = "http://host.docker.internal:54321/functions/v1/send-sms"
+secrets = "env(SEND_SMS_HOOK_SECRET)"
+
+# OTP: 6 digits, valid 10 minutes. The CLI exposes these under [auth.email];
+# on the hosted project also set Auth > Providers > Phone: "SMS OTP Length" = 6
+# and "SMS OTP Expiry" = 600 seconds.
+[auth.email]
+enable_signup = false
+enable_confirmations = false
+otp_length = 6
+otp_expiry = 600
+
+[edge_runtime]
+enabled = true
+policy = "per_worker"
+
+# --- Edge Functions -----------------------------------------------------------
+# verify_jwt = false: the function authenticates the caller itself
+# (shared secret, webhook signature, callback token or partner API key).
+
+[functions.dispatch]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+[functions.send-sms]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+[functions.sms-inbound]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+[functions.sms-delivery]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+[functions.whatsapp-webhook]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+# /payments/webhook is called by the payment provider (HMAC-signed) and
+# /payments/charge by the app; the charge route checks the user JWT itself.
+[functions.payments]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+[functions.partner-api]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+[functions.delete-account]
+verify_jwt = true
+import_map = "./functions/deno.json"
+
+[functions.geocode]
+verify_jwt = true
+import_map = "./functions/deno.json"
