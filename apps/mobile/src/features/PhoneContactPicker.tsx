@@ -1,4 +1,5 @@
-import * as Contacts from 'expo-contacts';
+// SDK 57 moved the function API to expo-contacts/legacy; the root import now throws.
+import * as Contacts from 'expo-contacts/legacy';
 import { normalizeGhanaPhone } from '@reached/core';
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Platform, View } from 'react-native';
@@ -26,9 +27,14 @@ export function PhoneContactPicker({ visible, onClose, onPick }: { visible: bool
   const load = async () => {
     if (Platform.OS === 'web') return setStep('denied');
     setStep('loading');
-    const { granted } = await Contacts.requestPermissionsAsync();
-    if (!granted) return setStep('denied');
-    const { data } = await Contacts.getContactsAsync({ fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Name], sort: Contacts.SortTypes.FirstName });
+    let data: Contacts.ExistingContact[];
+    try {
+      const { granted } = await Contacts.requestPermissionsAsync();
+      if (!granted) return setStep('denied');
+      ({ data } = await Contacts.getContactsAsync({ fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Name], sort: Contacts.SortTypes.FirstName }));
+    } catch {
+      return setStep('denied');
+    }
     const out: PickedContact[] = [];
     for (const c of data) {
       for (const n of c.phoneNumbers ?? []) {
@@ -61,7 +67,7 @@ export function PhoneContactPicker({ visible, onClose, onPick }: { visible: bool
           <TextField label="Search" value={q} onChangeText={setQ} placeholder="Search by name" />
           <FlatList
             data={shown}
-            keyExtractor={(c) => c.phone}
+            keyExtractor={(c, i) => `${c.phone}-${i}`}
             initialNumToRender={12}
             renderItem={({ item }) => (
               <ListRow title={item.name} subtitle={item.phone} left={<Avatar name={item.name} size={40} />} onPress={() => onPick(item)} />

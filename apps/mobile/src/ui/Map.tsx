@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
+import Constants from 'expo-constants';
 import MapView, { Circle, Marker, PROVIDER_GOOGLE, type MapPressEvent } from 'react-native-maps';
 import { Icon } from './Icon';
+import { SketchMap } from './SketchMap';
 import { DEFAULT_SPAN, type MapProps } from './mapTypes';
 import { useTheme } from './theme';
 
@@ -16,8 +18,17 @@ const DARK_STYLE = [
   { featureType: 'poi', stylers: [{ visibility: 'off' }] },
 ];
 
+// Google Maps on Android crashes at startup without an API key, so test builds
+// made without one show the sketch map instead.
+const hasAndroidMapsKey = Boolean(Constants.expoConfig?.android?.config?.googleMaps?.apiKey);
+
 /** Native map (Google Maps on Android, Apple/Google on iOS). */
-export function MapView_({ center, span = DEFAULT_SPAN, zone, markers = [], me, onPressMap, interactive = true, style, testID, accessibilityLabel }: MapProps) {
+export function MapView_(props: MapProps) {
+  if (Platform.OS === 'android' && !hasAndroidMapsKey) return <SketchMap {...props} />;
+  return <GoogleMap {...props} />;
+}
+
+function GoogleMap({ center, span = DEFAULT_SPAN, zone, markers = [], me, onPressMap, interactive = true, style, testID, accessibilityLabel }: MapProps) {
   const t = useTheme();
   const region = useMemo(
     () => ({
