@@ -8,7 +8,7 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
-  owner: undefined,
+  owner: 'osnw-tech-studio',
   ios: {
     bundleIdentifier: 'com.osnwtech.reached',
     supportsTablet: false,
@@ -87,6 +87,7 @@ const config: ExpoConfig = {
   experiments: { typedRoutes: false },
   extra: {
     backend: process.env.EXPO_PUBLIC_BACKEND ?? 'supabase',
+    eas: { projectId: '5eff023b-74b1-44f4-ba9a-ffb1f6c37555' },
   },
 };
 
