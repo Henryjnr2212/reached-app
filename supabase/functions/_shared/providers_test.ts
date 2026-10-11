@@ -35,7 +35,11 @@ Deno.test('getProvider: fake unless MESSAGING_MODE is exactly "live"', () => {
     assertInstanceOf(getProvider('whatsapp', { MESSAGING_MODE: mode }, db, noNetwork), FakeProvider);
   }
   assertInstanceOf(getProvider('sms', { MESSAGING_MODE: 'live' }, db, noNetwork), AfricasTalkingSms);
-  assertInstanceOf(getProvider('whatsapp', { MESSAGING_MODE: 'live' }, db, noNetwork), WhatsAppCloud);
+  assertInstanceOf(getProvider('whatsapp', { MESSAGING_MODE: 'live' }, db, noNetwork), AfricasTalkingSms);
+  assertInstanceOf(
+    getProvider('whatsapp', { MESSAGING_MODE: 'live', WHATSAPP_ACCESS_TOKEN: 't', WHATSAPP_PHONE_NUMBER_ID: 'p' }, db, noNetwork),
+    WhatsAppCloud,
+  );
 });
 
 Deno.test('getProvider: live SMS uses sandbox URL only when AFRICASTALKING_SANDBOX=true', () => {

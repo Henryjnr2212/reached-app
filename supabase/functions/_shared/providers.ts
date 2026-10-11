@@ -159,7 +159,9 @@ export function isLive(env: Env): boolean {
 /** Pick the provider for a channel. Real providers only when MESSAGING_MODE === 'live'. */
 export function getProvider(channel: Channel, env: Env, db: DbClient, fetchFn: FetchFn = fetch): MessageProvider {
   if (!isLive(env)) return new FakeProvider(db);
-  if (channel === 'whatsapp') {
+  // Until WhatsApp Cloud API credentials exist, WhatsApp messages go out as SMS
+  // rather than failing.
+  if (channel === 'whatsapp' && env.WHATSAPP_ACCESS_TOKEN && env.WHATSAPP_PHONE_NUMBER_ID) {
     return new WhatsAppCloud(
       { accessToken: env.WHATSAPP_ACCESS_TOKEN, phoneNumberId: env.WHATSAPP_PHONE_NUMBER_ID },
       fetchFn,
